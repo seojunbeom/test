@@ -6,30 +6,32 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>서준범</title>
-    <link rel="stylesheet" href="style.css"
-</head>
+    <link rel="stylesheet" href="style.css" </head>
 
 <body>
     <h1>포켓몬도감만들기</h1>
     <p>피카츄, 파이리, 꼬부기를 구별해서 이에 대한 설명을 보여주는 웹 앱</p>\
     <button type="button" onclick="init()">Start</button>
+    <button type="button" onclick="predict()">Predict</button>
     <script class="jsbin" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-<div class="file-upload">
-  <button class="file-upload-btn" type="button" onclick="$('.file-upload-input').trigger( 'click' )">Add Image</button>
+    <div class="file-upload">
+        <button class="file-upload-btn" type="button" onclick="$('.file-upload-input').trigger( 'click' )">Add
+            Image</button>
 
-  <div class="image-upload-wrap">
-    <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
-    <div class="drag-text">
-      <h3>Drag and drop a file or select add Image</h3>
+        <div class="image-upload-wrap">
+            <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
+            <div class="drag-text">
+                <h3>Drag and drop a file or select add Image</h3>
+            </div>
+        </div>
+        <div class="file-upload-content">
+            <img class="file-upload-image" id="my image" src="#" alt="your image" />
+            <div class="image-title-wrap">
+                <button type="button" onclick="removeUpload()" class="remove-image">Remove <span
+                        class="image-title">Uploaded Image</span></button>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="file-upload-content">
-    <img class="file-upload-image" src="#" alt="your image" />
-    <div class="image-title-wrap">
-      <button type="button" onclick="removeUpload()" class="remove-image">Remove <span class="image-title">Uploaded Image</span></button>
-    </div>
-  </div>
-</div>
     <div id="webcam-container"></div>
     <div id="label-container"></div>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
@@ -55,71 +57,77 @@
             model = await tmImage.load(modelURL, metadataURL);
             maxPredictions = model.getTotalClasses();
 
-            // Convenience function to setup a webcam
-            const flip = true; // whether to flip the webcam
-            webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-            await webcam.setup(); // request access to the webcam
-            await webcam.play();
-            window.requestAnimationFrame(loop);
+
 
             // append elements to the DOM
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
+
             labelContainer = document.getElementById("label-container");
             for (let i = 0; i < maxPredictions; i++) { // and class labels
                 labelContainer.appendChild(document.createElement("div"));
             }
         }
 
-        async function loop() {
-            webcam.update(); // update the webcam frame
-            await predict();
-            window.requestAnimationFrame(loop);
-        }
+
 
         // run the webcam image through the image model
         async function predict() {
             // predict can take in an image, video or canvas html element
-            const prediction = await model.predict(webcam.canvas);
-            for (let i = 0; i < maxPredictions; i++) {
-                const classPrediction =
-                    prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-                labelContainer.childNodes[i].innerHTML = classPrediction;
+            var image = document.getElementyById("my-image")
+            const prediction = await model.predict(image, false);
+            if (prediction[0].probability > 0.7){
+                labelContainer.childNodes[0].innnerHTML = "피카츄입니다"
+                labelContainer.childNodes[0].innnerHTML = "포켓몬스터 프랜차이즈의 상징이자 영원한 마스코트인 포켓몬. 1000마리 안팎을 오가는 무수히 많은 포켓몬들 중에서도 가장 유명하며, 그만큼 인기도 많은 포켓몬이다"
             }
+            else if(prediction[0].probability > 0.7){
+                labelContainer.childNodes[0].innnerHTML = "파이리입니다"
+                labelContainer.childNodes[0].innnerHTML = "1세대, 3세대 리메이크작의 불꽃 타입 스타팅 리자몽의 초기형태. SBS에서 방영했을 때 성우는 차명화.[3] 성우는 사카구치 다이스케/최하나."
+            }
+            else if(prediction[0].probability > 0.7){
+                labelContainer.childNodes[0].innnerHTML = "꼬부기입니다"
+                labelContainer.childNodes[0].innnerHTML = "물 스타팅 중에서 순서상 제 1번 자리를 차지하는 거북 포켓몬. 1세대의 물 타입 스타팅인 꼬부기의 최종 진화형."
+            //for (let i = 0; i < maxPredictions; i++) {
+            //  const classPrediction =
+            //      prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            //  labelContainer.childNodes[i].innerHTML = classPrediction;
+        }
+        else{
+            labelContainer.childNodes[0].innnerHTML = "잘모르겠습니다"   
+        }
         }
     </script>
-<script>function readURL(input) {
-    if (input.files && input.files[0]) {
-  
-      var reader = new FileReader();
-  
-      reader.onload = function(e) {
-        $('.image-upload-wrap').hide();
-  
-        $('.file-upload-image').attr('src', e.target.result);
-        $('.file-upload-content').show();
-  
-        $('.image-title').html(input.files[0].name);
-      };
-  
-      reader.readAsDataURL(input.files[0]);
-  
-    } else {
-      removeUpload();
-    }
-  }
-  
-  function removeUpload() {
-    $('.file-upload-input').replaceWith($('.file-upload-input').clone());
-    $('.file-upload-content').hide();
-    $('.image-upload-wrap').show();
-  }
-  $('.image-upload-wrap').bind('dragover', function () {
-          $('.image-upload-wrap').addClass('image-dropping');
-      });
-      $('.image-upload-wrap').bind('dragleave', function () {
-          $('.image-upload-wrap').removeClass('image-dropping');
-  });
-  </script>
+    <script>function readURL(input) {
+            if (input.files && input.files[0]) {
+
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    $('.image-upload-wrap').hide();
+
+                    $('.file-upload-image').attr('src', e.target.result);
+                    $('.file-upload-content').show();
+
+                    $('.image-title').html(input.files[0].name);
+                };
+
+                reader.readAsDataURL(input.files[0]);
+
+            } else {
+                removeUpload();
+            }
+        }
+
+        function removeUpload() {
+            $('.file-upload-input').replaceWith($('.file-upload-input').clone());
+            $('.file-upload-content').hide();
+            $('.image-upload-wrap').show();
+        }
+        $('.image-upload-wrap').bind('dragover', function () {
+            $('.image-upload-wrap').addClass('image-dropping');
+        });
+        $('.image-upload-wrap').bind('dragleave', function () {
+            $('.image-upload-wrap').removeClass('image-dropping');
+        });
+    </script>
 </body>
 
 </html>
